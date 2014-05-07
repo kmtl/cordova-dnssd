@@ -21,9 +21,6 @@ Click item to show IP/port information.
 <!-- TODO get a local jquery copy, eg http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js -->
 <script src="jquery.min.js"></script>
 
-<!-- search www/ and www/js for dnssd.js, you only need one -->
-<script type="text/javascript" src="dnssd.js"></script>
-<script type="text/javascript" src="js/dnssd.js"></script>
 <script type="text/javascript">
 
 /*
@@ -42,7 +39,7 @@ function service2id(n)
 function serviceResolved(hostName, port, serviceName, regType, domain)
 {
 	alert(serviceName+" is at "+hostName+":"+port);
-	// window.plugins.dnssd.browse(); // cancel browse operation if you dont need it anymore
+	// window.dnssd.browse(); // cancel browse operation if you dont need it anymore
 }
 
 function serviceLost(serviceName, regType, domain, moreComing)
@@ -60,7 +57,7 @@ function serviceFound(serviceName, regType, domain, moreComing)
 		.text(serviceName)
         .css("cursor","pointer")
 		.click(function() {   
-			window.plugins.dnssd.resolve(serviceName, regType, domain, serviceResolved);
+			window.dnssd.resolve(serviceName, regType, domain, serviceResolved);
 		});
 	$("#daap").append(t);
 }
@@ -68,7 +65,7 @@ function serviceFound(serviceName, regType, domain, moreComing)
 document.addEventListener('deviceready', function()
 {
    	// start browse operation for daap services.  when done, call browse() without parameters to complete it.
-	window.plugins.dnssd.browse("_daap._tcp", "local", serviceFound, serviceLost);
+	window.dnssd.browse("_daap._tcp", "local", serviceFound, serviceLost);
 });
 
 </script>

@@ -36,13 +36,7 @@ DNSSD.prototype.resolve=function(serviceName, regType, domain, serviceResolved) 
 	return cordova.exec(success, function(){}, "fi.peekpoke.cordova.dnssd", "resolve", [serviceName, regType, domain]);
 }
 
-cordova.addConstructor(function() {
-	console.log('initializing window.plugins.dnssd'); 
-	if(!window.plugins)	{
-		window.plugins = {};
-	}
-	window.plugins.dnssd = new DNSSD();
-});
+module.exports = new DNSSD();
 
 /*
 

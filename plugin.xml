@@ -10,7 +10,11 @@
     <author>Jarno Heikkinen</author>
     <license>Apache 2.0</license>
     <keywords>cordova,dnssd,dns-sd,bonjour,discovery</keywords>
-    <asset src="dnssd.js" target="js/dnssd.js" />
+
+    <js-module src="dnssd.js" name="dnssd">
+        <clobbers target="dnssd" />
+    </js-module>
+
     <platform name="ios">
         <config-file target="config.xml" parent="/*">
             <feature name="fi.peekpoke.cordova.dnssd">
