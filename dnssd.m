@@ -24,6 +24,18 @@
 #error This plugin requires ARC
 #endif
 
+- (void)stopBrowsing:(CDVInvokedUrlCommand*)command
+{
+    [self.netServiceBrowser stop];
+    self.netServiceBrowser = nil;
+
+    [self.currentResolve stop];
+    self.currentResolve = nil;
+
+    CDVPluginResult* result = [CDVPluginResult resultWithStatus: CDVCommandStatus_OK];
+    [self.commandDelegate sendPluginResult:result callbackId:command.callbackId];
+}
+
 //- (void)browse:(NSArray*)arguments withDict:(NSDictionary*)options
 - (void)browse:(CDVInvokedUrlCommand*)command
 {

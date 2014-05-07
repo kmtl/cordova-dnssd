@@ -30,6 +30,7 @@
 
 - (void)browse:(CDVInvokedUrlCommand*)command;
 - (void)resolve:(CDVInvokedUrlCommand*)command;
+- (void)stopBrowsing:(CDVInvokedUrlCommand*)command;
 
 
 @end

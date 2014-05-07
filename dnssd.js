@@ -10,6 +10,11 @@ function DNSSD()
 {
 }
 
+DNSSD.prototype.stopBrowsing = function(callback) {
+    console.log("Stop browsing.");
+    cordova.exec(callback, function(){}, "fi.peekpoke.cordova.dnssd", "stopBrowsing", []);
+}
+
 DNSSD.prototype.browse=function(regType, domain, serviceFound, serviceLost) { 
     console.log("browse "+regType);
 
