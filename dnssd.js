@@ -23,7 +23,7 @@ function processResolveQueue() {
         if(result.serviceResolved)
             setTimeout(function() {
                 // Defer callback call to detach execution context.
-                queueItem.callback(result.hostName, result.port, result.serviceName, result.regType, result.domain);
+                queueItem.callback(result.hostName, result.port, result.serviceName, result.regType, result.domain, result.address, result.address6);
             }, 0);
 
         isResolving = false;
@@ -40,7 +40,7 @@ function DNSSD()
 DNSSD.prototype.stopBrowsing = function(callback) {
     console.log("Stop browsing.");
     cordova.exec(callback, function(){}, "fi.peekpoke.cordova.dnssd", "stopBrowsing", []);
-}
+};
 
 DNSSD.prototype.browse=function(regType, domain, serviceFound, serviceLost) {
     console.log("browse "+regType);
@@ -54,7 +54,7 @@ DNSSD.prototype.browse=function(regType, domain, serviceFound, serviceLost) {
     }
 
     cordova.exec(success, function(){}, "fi.peekpoke.cordova.dnssd", "browse", [regType, domain]);
-}
+};
 
 DNSSD.prototype.resolve=function(serviceName, regType, domain, serviceResolved) {
     console.log("resolve "+serviceName);
@@ -67,7 +67,7 @@ DNSSD.prototype.resolve=function(serviceName, regType, domain, serviceResolved) 
     });
 
     processResolveQueue()
-}
+};
 
 module.exports = new DNSSD();
 
