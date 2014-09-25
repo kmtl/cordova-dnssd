@@ -39,6 +39,7 @@ function DNSSD()
 
 DNSSD.prototype.stopBrowsing = function(callback) {
     console.log("Stop browsing.");
+    resolveQueue.length = 0;
     cordova.exec(callback, function(){}, "fi.peekpoke.cordova.dnssd", "stopBrowsing", []);
 }
 
