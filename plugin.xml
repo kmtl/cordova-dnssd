@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
     <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
-        id="fi.peekpoke.cordova.dnssd" 
+        id="fi.peekpoke.cordova.dnssd"
         version="0.0.2">
     <engines>
         <engine name="cordova-ios" version=">=2.9.0" />
@@ -10,8 +10,9 @@
     <author>Jarno Heikkinen</author>
     <license>Apache 2.0</license>
     <keywords>cordova,dnssd,dns-sd,bonjour,discovery</keywords>
+	<repo>https://github.com/coqsenpate/cordova-dnssd/tree/custom</repo>
 
-    <js-module src="dnssd.js" name="dnssd">
+    <js-module src="www/dnssd.js" name="dnssd">
         <clobbers target="dnssd" />
     </js-module>
 
@@ -21,7 +22,7 @@
                 <param name="ios-package" value="CDVBonjour"/>
             </feature>
         </config-file>
-        <header-file src="dnssd.h" />
-        <source-file src="dnssd.m" />
+        <header-file src="src/ios/dnssd.h" />
+        <source-file src="src/ios/dnssd.m" />
     </platform>
 </plugin>
