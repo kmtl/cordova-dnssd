@@ -20,7 +20,9 @@ function processResolveQueue() {
 
     function success(result)
     {
+        console.log("starting callback sucess function");
         if(result.serviceResolved)
+            console.log("serviceResolved");
             setTimeout(function() {
                 // Defer callback call to detach execution context.
                 queueItem.callback(result.hostName, result.port, result.serviceName, result.regType, result.domain);
@@ -44,7 +46,7 @@ DNSSD.prototype.stopBrowsing = function(callback) {
 }
 
 DNSSD.prototype.browse=function(regType, domain, serviceFound, serviceLost) {
-    console.log("browse "+regType);
+    console.log("browse "+regType+", domain "+domain);
 
     function success(result)
     {
@@ -66,6 +68,7 @@ DNSSD.prototype.resolve=function(serviceName, regType, domain, serviceResolved) 
         regType: regType,
         domain: domain
     });
+    console.log(resolveQueue);
 
     processResolveQueue()
 }

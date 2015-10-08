@@ -25,4 +25,13 @@
         <header-file src="src/ios/dnssd.h" />
         <source-file src="src/ios/dnssd.m" />
     </platform>
+	<!-- android -->
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="fi.peekpoke.cordova.dnssd">
+                <param name="android-package" value="com.coqsenpate.cordova.CordovaBonjour"/>
+            </feature>
+        </config-file>
+        <source-file src="src/android/CordovaBonjour.java" target-dir="src/com/coqsenpate/cordova"/>
+    </platform>
 </plugin>
