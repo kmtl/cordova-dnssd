@@ -141,7 +141,7 @@ public class CordovaBonjour extends CordovaPlugin {
             //create a JSON object to send the results
             JSONObject serviceJSON = new JSONObject();
             try{
-                serviceJSON.put("hostName" ,serviceInfo.getHost().getHostAddress() );
+                serviceJSON.put("hostName" ,serviceInfo.getHost().getHostName() );
                 serviceJSON.put("port", serviceInfo.getPort());
                 serviceJSON.put("serviceName",serviceInfo.getServiceName());
                 serviceJSON.put("regType",serviceInfo.getServiceType());
