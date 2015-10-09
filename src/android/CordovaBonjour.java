@@ -16,11 +16,11 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.JSONException;
 import java.util.Stack;
+import java.lang.RuntimeException;
 
 public class CordovaBonjour extends CordovaPlugin {
-    String tag = "dnssd";
-    Stack<NsdManager.DiscoveryListener> listenerStack = new Stack<NsdManager.DiscoveryListener>();
-    PluginResult result;
+    private static final String TAG = "dnssd";
+    private Stack<NsdManager.DiscoveryListener> listenerStack = new Stack<NsdManager.DiscoveryListener>();
 
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException{
         if (action.equals("browse")){
@@ -41,6 +41,7 @@ public class CordovaBonjour extends CordovaPlugin {
             return true;
         }
         else{
+            PluginResult result = new PluginResult(PluginResult.Status.INVALID_ACTION, action);
             return false;
         }
     }
@@ -61,25 +62,28 @@ public class CordovaBonjour extends CordovaPlugin {
         //called when the service begins
         @Override
         public void onDiscoveryStarted(String serviceType) {
-            Log.d(tag, "Start discovering services of type "+serviceType);
+            Log.d(TAG, "Start discovering services of type "+serviceType);
         }
 
         @Override
         public void onServiceFound(NsdServiceInfo service) {
-            Log.d(tag, "Service "+service+" of type "+service.getServiceType()+" found.");
+            Log.d(TAG, "Service found : "+service+" of type "+service.getServiceType()+" found.");
+
+            //create JSONObject to send as result
             JSONObject serviceJSON = new JSONObject();
             try{
-                serviceJSON = new JSONObject();
-                serviceJSON.put(new String("serviceFound"), new Boolean(true));
+                serviceJSON.put("serviceFound", true);
                 serviceJSON.put("serviceName", service.getServiceName());
                 serviceJSON.put("regType",service.getServiceType());
                 serviceJSON.put("domain","");//NOTE : such a property doesn't exist in class NsdServiceInfo`
                 serviceJSON.put("moreComing",null);
             }
-            catch (JSONException e){
-                Log.e(tag, "JSON execption ");
+            catch(JSONException e){
+                throw new RuntimeException(e);
             }
-            result = new PluginResult(PluginResult.Status.OK,serviceJSON);
+
+            //send result keeping callbackContext
+            PluginResult result = new PluginResult(PluginResult.Status.OK,serviceJSON);
             result.setKeepCallback(true);
             callbackContext.sendPluginResult(result);
             return;
@@ -87,18 +91,22 @@ public class CordovaBonjour extends CordovaPlugin {
 
         @Override
         public void onServiceLost(NsdServiceInfo service) {
-            Log.e(tag, "Service lost " + service);
+            Log.d(TAG, "Service lost " + service);
+
+            //create JSONObject to send as result
             JSONObject serviceJSON = new JSONObject() ;
             try{
                 serviceJSON = new JSONObject();
-                serviceJSON.put("serviceLost", new Boolean(true));
+                serviceJSON.put("serviceLost", true);
                 serviceJSON.put("regType",service.getServiceType());
                 serviceJSON.put("serviceName",service.getServiceName());
             }
-            catch (JSONException e){
-                Log.e(tag, "JSON Exception");
+            catch(JSONException e){
+                throw new RuntimeException(e);
             }
-            result = new PluginResult(PluginResult.Status.OK,serviceJSON);
+
+            //send result keeping callbackContext
+            PluginResult result = new PluginResult(PluginResult.Status.OK,serviceJSON);
             result.setKeepCallback(true);
             callbackContext.sendPluginResult(result);
             return;
@@ -106,19 +114,41 @@ public class CordovaBonjour extends CordovaPlugin {
 
         @Override
         public void onDiscoveryStopped(String serviceType) {
-            Log.i(tag, "Discovery stopped: " + serviceType);
+            Log.d(TAG, "Discovery stopped: " + serviceType);
+            PluginResult result = new PluginResult(PluginResult.Status.OK,0);
+            callbackContext.sendPluginResult(result);
         }
 
         @Override
         public void onStartDiscoveryFailed(String serviceType, int errorCode) {
-            Log.e(tag, "Discovery failed: Error code:" + errorCode);
+            Log.e(TAG, "Discovery failed: Error code:" + errorCode);
             getNsdManager().stopServiceDiscovery(this);
+            JSONObject serviceJSON = new JSONObject();
+            try{
+                serviceJSON.put("error",errorCode);
+                serviceJSON.put("startDiscoveryFailed",true);
+            }
+            catch(JSONException e){
+                throw new RuntimeException(e);
+            }
+            PluginResult result = new PluginResult(PluginResult.Status.OK,serviceJSON);
+            callbackContext.sendPluginResult(result);
         }
 
         @Override
         public void onStopDiscoveryFailed(String serviceType, int errorCode) {
-            Log.e(tag, "Discovery failed: Error code:" + errorCode);
+            Log.e(TAG, "Discovery failed: Error code:" + errorCode);
             getNsdManager().stopServiceDiscovery(this);
+            JSONObject serviceJSON = new JSONObject();
+            try{
+                serviceJSON.put("error",errorCode);
+                serviceJSON.put("stopDiscoveryFailed",true);
+            }
+            catch(JSONException e){
+                throw new RuntimeException(e);
+            }
+            PluginResult result = new PluginResult(PluginResult.Status.OK,serviceJSON);
+            callbackContext.sendPluginResult(result);
         }
     }
 
@@ -132,26 +162,39 @@ public class CordovaBonjour extends CordovaPlugin {
         @Override
         public void onResolveFailed(NsdServiceInfo serviceInfo, int errorCode) {
             // Called when the resolve fails.  Use the error code to debug.
-            Log.e(tag, "Resolve failed" + errorCode);
+            Log.e(TAG, "Resolve failed" + errorCode);
+            JSONObject serviceJSON = new JSONObject();
+            try{
+                serviceJSON.put("error",errorCode);
+                serviceJSON.put("serviceResolved",new Boolean(true));
+            }
+            catch(JSONException e){
+                throw new RuntimeException(e);
+            }
+
+            PluginResult result = new PluginResult(PluginResult.Status.OK,serviceJSON);
+            callbackContext.sendPluginResult(result);
         }
 
         @Override
         public void onServiceResolved(NsdServiceInfo serviceInfo) {
-            Log.e(tag, "Resolve Succeeded. " + serviceInfo);
+            Log.d(TAG, "Resolve Succeeded. " + serviceInfo);
+
             //create a JSON object to send the results
             JSONObject serviceJSON = new JSONObject();
             try{
+                serviceJSON.put("serviceResolved", new Boolean(true));
                 serviceJSON.put("hostName" ,serviceInfo.getHost().getHostName() );
                 serviceJSON.put("port", serviceInfo.getPort());
                 serviceJSON.put("serviceName",serviceInfo.getServiceName());
                 serviceJSON.put("regType",serviceInfo.getServiceType());
                 serviceJSON.put("domain","");
             }
-            catch (JSONException e){
-                Log.e(tag,"JSON Execption ");
+            catch(JSONException e){
+                throw new RuntimeException(e);
             }
-            result = new PluginResult(PluginResult.Status.OK,serviceJSON);
-            result.setKeepCallback(true);
+
+            PluginResult result = new PluginResult(PluginResult.Status.OK,serviceJSON);
             callbackContext.sendPluginResult(result);
         }
     }
@@ -165,15 +208,7 @@ public class CordovaBonjour extends CordovaPlugin {
         DnssdServiceListener myServiceListener = new DnssdServiceListener(callbackContext);
         getNsdManager().discoverServices(serviceType, NsdManager.PROTOCOL_DNS_SD, myServiceListener);
         listenerStack.push(myServiceListener);
-        // Instantiate a new DiscoveryListener
-    }
-
-    private void stopServiceDiscovery(CallbackContext callbackContext){
-        Log.d(tag,"Stoping all discovery services");
-        while (!listenerStack.empty()){
-            Log.d(tag,"stopping service listener "+listenerStack.peek());
-            getNsdManager().stopServiceDiscovery(listenerStack.pop());
-        }
+        return;
     }
 
     private void resolveService(String serviceName, String serviceType, CallbackContext callbackContext){
@@ -182,5 +217,18 @@ public class CordovaBonjour extends CordovaPlugin {
         serviceToResolve.setServiceName(serviceName);
         serviceToResolve.setServiceType(serviceType);
         getNsdManager().resolveService(serviceToResolve,myResolveListener);
+        return;
     }
+
+    private void stopServiceDiscovery(CallbackContext callbackContext){
+        Log.d(TAG,"Stoping all discovery services");
+        while (!listenerStack.empty()){
+            Log.d(TAG,"stopping service listener "+listenerStack.peek());
+            getNsdManager().stopServiceDiscovery(listenerStack.pop());
+        }
+        PluginResult result = new PluginResult(PluginResult.Status.OK,0);
+        callbackContext.sendPluginResult(result);
+        return;
+    }
+
 }

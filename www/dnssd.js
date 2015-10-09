@@ -10,29 +10,52 @@
 var resolveQueue = [];
 var isResolving = false;
 
+var RESOLVE_TIMEOUT = 5000;//ms
+
 function processResolveQueue() {
-    if (isResolving || resolveQueue.length === 0)
+    if (isResolving || resolveQueue.length === 0){
+        // console.log("service resolving, resolveQueue lenght = "+resolveQueue.length);
         return;
+    }
 
     isResolving = true;
 
     queueItem = resolveQueue.shift();
 
+    function resumeProcessingQueue() {
+        isResolving = false;
+        processResolveQueue();
+    }
+
+    var resolveFailed = function(result){
+        console.warn("Resolve service failed",result);
+    }
+
+    var resolveTimeOut = setTimeout(function(){
+        console.error("Service resolve timed out:",queueItem.serviceName);
+        resumeProcessingQueue();
+    },RESOLVE_TIMEOUT);
+
     function success(result)
     {
-        console.log("starting callback sucess function");
-        if(result.serviceResolved)
+        clearTimeout(resolveTimeOut);
+        console.group("resolving service terminated");
+        if(result.serviceResolved){
             console.log("serviceResolved");
             setTimeout(function() {
                 // Defer callback call to detach execution context.
                 queueItem.callback(result.hostName, result.port, result.serviceName, result.regType, result.domain);
+                console.log("queueItem callback "+queueItem.callback+" executed");
             }, 0);
+        } else{
+            console.warn("Service not resolved:");
+        }
 
-        isResolving = false;
-        processResolveQueue()
+        console.groupEnd();
+        resumeProcessingQueue();
     }
 
-    cordova.exec(success, function(){}, "fi.peekpoke.cordova.dnssd", "resolve", [queueItem.serviceName, queueItem.regType, queueItem.domain]);
+    cordova.exec(success, resolveFailed, "fi.peekpoke.cordova.dnssd", "resolve", [queueItem.serviceName, queueItem.regType, queueItem.domain]);
 }
 
 function DNSSD()
@@ -42,21 +65,27 @@ function DNSSD()
 DNSSD.prototype.stopBrowsing = function(callback) {
     console.log("Stop browsing.");
     resolveQueue.length = 0;
-    cordova.exec(callback, function(){}, "fi.peekpoke.cordova.dnssd", "stopBrowsing", []);
+    var stopBrowsingFailed = function(result){
+        console.warn("Stop browsing failed !",result);
+    }
+    cordova.exec(callback, stopBrowsingFailed, "fi.peekpoke.cordova.dnssd", "stopBrowsing", []);
 }
 
 DNSSD.prototype.browse=function(regType, domain, serviceFound, serviceLost) {
-    console.log("browse "+regType+", domain "+domain);
+    console.log("Browsing services of type "+regType+" on domain "+domain);
 
     function success(result)
     {
         if(result.serviceFound)
             serviceFound(result.serviceName, result.regType, result.domain, result.moreComing);
-        if(result.serviceLost)
+        else if(result.serviceLost)
             serviceLost(result.serviceName, result.regType, result.domain, result.moreComing);
     }
 
-    cordova.exec(success, function(){}, "fi.peekpoke.cordova.dnssd", "browse", [regType, domain]);
+    var browsingFailed = function(result){
+        console.warn("Start browsing failed",result);
+    }
+    cordova.exec(success, browsingFailed, "fi.peekpoke.cordova.dnssd", "browse", [regType, domain]);
 }
 
 DNSSD.prototype.resolve=function(serviceName, regType, domain, serviceResolved) {
@@ -68,7 +97,7 @@ DNSSD.prototype.resolve=function(serviceName, regType, domain, serviceResolved) 
         regType: regType,
         domain: domain
     });
-    console.log(resolveQueue);
+    console.log("resolveQueue:",resolveQueue);
 
     processResolveQueue()
 }
