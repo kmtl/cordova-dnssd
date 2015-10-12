@@ -28,7 +28,7 @@ function processResolveQueue() {
     }
 
     var resolveFailed = function(result){
-        console.error("Plugin cordova-dnssd, service resolve failed : ",result);
+        console.warn("Resolve service failed",result);
     }
 
     var resolveTimeOut = setTimeout(function(){
