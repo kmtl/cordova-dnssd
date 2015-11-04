@@ -1,7 +1,7 @@
 cordova-dnssd
 -------------
 
-Cordova plugin for running DNS-SD browsing and resolving on iOS and OSX.
+Cordova plugin for running DNS-SD browsing and resolving on iOS, OSX and Android.
 
 Instructions
 ------------
@@ -35,4 +35,3 @@ Legal
 (same as Cordova, for license see http://www.apache.org/licenses/LICENSE-2.0)
 
 Copyright (c) 2012-2013 Jarno Heikkinen <jarnoh@komplex.org>.
-
