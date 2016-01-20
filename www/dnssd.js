@@ -1,3 +1,4 @@
+cordova.define("fi.peekpoke.cordova.dnssd.dnssd", function(require, exports, module) {
 /*
  * Bonjour DNS-SD plugin for Cordova.
  * Allows browsing and resolving of local ad-hoc services
@@ -19,7 +20,8 @@ function processResolveQueue() {
 
     isResolving = true;
 
-    queueItem = resolveQueue.shift();
+    var queueItem = resolveQueue.shift();
+    var timedOut = false;
 
     function resumeProcessingQueue() {
         isResolving = false;
@@ -28,23 +30,31 @@ function processResolveQueue() {
 
     var resolveFailed = function(result){
         console.error("Plugin cordova-dnssd, service resolve failed : ",result);
+        if (queueItem.errorCallback)
+            queueItem.errorCallback(result,queueItem.serviceName,queueItem.regType,queueItem.domain);
     }
 
     var resolveTimeOut = setTimeout(function(){
         console.error("Service resolve timed out:",queueItem.serviceName);
-        resumeProcessingQueue();
+        timedOut = true;
+        resolveFailed('TIMEOUT');
+
+        // Don't resume processing. We can only resolve 1 service at a time so we need to wait until native function return or we'll get an error.
     },RESOLVE_TIMEOUT);
 
     function success(result)
     {
-        clearTimeout(resolveTimeOut);
-        if(result.serviceResolved){
-            setTimeout(function() {
-                // Defer callback call to detach execution context.
-                queueItem.callback(result.hostName, result.port, result.serviceName, result.regType, result.domain);
-            }, 0);
-        } else{
-            resolveFailed(result);
+        if (!timedOut) {
+            // Don't do anything if resolve timed out.
+            clearTimeout(resolveTimeOut);
+            if(result.serviceResolved){
+                setTimeout(function() {
+                    // Defer callback call to detach execution context.
+                    queueItem.callback(result.hostName, result.port, result.serviceName, result.regType, result.domain);
+                }, 0);
+            } else{
+                resolveFailed(result);
+            }
         }
 
         resumeProcessingQueue();
@@ -80,9 +90,10 @@ DNSSD.prototype.browse=function(regType, domain, serviceFound, serviceLost) {
     cordova.exec(success, browsingFailed, "fi.peekpoke.cordova.dnssd", "browse", [regType, domain]);
 }
 
-DNSSD.prototype.resolve=function(serviceName, regType, domain, serviceResolved) {
+DNSSD.prototype.resolve=function(serviceName, regType, domain, serviceResolved, errorCallback) {
     resolveQueue.push({
         callback: serviceResolved,
+        errorCallback: errorCallback,
         serviceName: serviceName,
         regType: regType,
         domain: domain
@@ -102,3 +113,5 @@ function serviceFound(serviceName, regType, domain, moreComing)
 function serviceLost(serviceName, regType, domain, moreComing)
 
 */
+
+});
