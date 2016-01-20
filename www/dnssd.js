@@ -14,7 +14,6 @@ var RESOLVE_TIMEOUT = 5000;//ms
 
 function processResolveQueue() {
     if (isResolving || resolveQueue.length === 0){
-        // console.log("service resolving, resolveQueue lenght = "+resolveQueue.length);
         return;
     }
 
@@ -39,19 +38,15 @@ function processResolveQueue() {
     function success(result)
     {
         clearTimeout(resolveTimeOut);
-        console.group("resolving service terminated");
         if(result.serviceResolved){
-            console.log("serviceResolved");
             setTimeout(function() {
                 // Defer callback call to detach execution context.
                 queueItem.callback(result.hostName, result.port, result.serviceName, result.regType, result.domain);
-                console.log("queueItem callback "+queueItem.callback+" executed");
             }, 0);
         } else{
-            console.warn("Service not resolved:");
+            resolveFailed(result);
         }
 
-        console.groupEnd();
         resumeProcessingQueue();
     }
 
@@ -63,7 +58,6 @@ function DNSSD()
 }
 
 DNSSD.prototype.stopBrowsing = function(callback) {
-    console.log("Stop browsing.");
     resolveQueue.length = 0;
     var stopBrowsingFailed = function(result){
         console.error("Plugin cordova-dnssd, service stopBrowsing failed : ",result);
@@ -72,8 +66,6 @@ DNSSD.prototype.stopBrowsing = function(callback) {
 }
 
 DNSSD.prototype.browse=function(regType, domain, serviceFound, serviceLost) {
-    console.log("Browsing services of type "+regType+" on domain "+domain);
-
     function success(result)
     {
         if(result.serviceFound)
@@ -89,15 +81,12 @@ DNSSD.prototype.browse=function(regType, domain, serviceFound, serviceLost) {
 }
 
 DNSSD.prototype.resolve=function(serviceName, regType, domain, serviceResolved) {
-    console.log("resolve "+serviceName);
-
     resolveQueue.push({
         callback: serviceResolved,
         serviceName: serviceName,
         regType: regType,
         domain: domain
     });
-    console.log("resolveQueue:",resolveQueue);
 
     processResolveQueue()
 }
