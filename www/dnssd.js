@@ -1,4 +1,3 @@
-cordova.define("fi.peekpoke.cordova.dnssd.dnssd", function(require, exports, module) {
 /*
  * Bonjour DNS-SD plugin for Cordova.
  * Allows browsing and resolving of local ad-hoc services
@@ -113,5 +112,3 @@ function serviceFound(serviceName, regType, domain, moreComing)
 function serviceLost(serviceName, regType, domain, moreComing)
 
 */
-
-});
