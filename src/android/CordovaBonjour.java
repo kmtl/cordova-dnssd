@@ -166,7 +166,7 @@ public class CordovaBonjour extends CordovaPlugin {
             JSONObject serviceJSON = new JSONObject();
             try{
                 serviceJSON.put("error",errorCode);
-                serviceJSON.put("serviceResolved",new Boolean(true));
+                serviceJSON.put("serviceResolved",new Boolean(false));
             }
             catch(JSONException e){
                 throw new RuntimeException(e);

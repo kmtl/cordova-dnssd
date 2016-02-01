@@ -14,13 +14,13 @@ var RESOLVE_TIMEOUT = 5000;//ms
 
 function processResolveQueue() {
     if (isResolving || resolveQueue.length === 0){
-        // console.log("service resolving, resolveQueue lenght = "+resolveQueue.length);
         return;
     }
 
     isResolving = true;
 
-    queueItem = resolveQueue.shift();
+    var queueItem = resolveQueue.shift();
+    var timedOut = false;
 
     function resumeProcessingQueue() {
         isResolving = false;
@@ -29,29 +29,33 @@ function processResolveQueue() {
 
     var resolveFailed = function(result){
         console.error("Plugin cordova-dnssd, service resolve failed : ",result);
+        if (queueItem.errorCallback)
+            queueItem.errorCallback(result,queueItem.serviceName,queueItem.regType,queueItem.domain);
     }
 
     var resolveTimeOut = setTimeout(function(){
         console.error("Service resolve timed out:",queueItem.serviceName);
-        resumeProcessingQueue();
+        timedOut = true;
+        resolveFailed('TIMEOUT');
+
+        // Don't resume processing. We can only resolve 1 service at a time so we need to wait until native function return or we'll get an error.
     },RESOLVE_TIMEOUT);
 
     function success(result)
     {
-        clearTimeout(resolveTimeOut);
-        console.group("resolving service terminated");
-        if(result.serviceResolved){
-            console.log("serviceResolved");
-            setTimeout(function() {
-                // Defer callback call to detach execution context.
-                queueItem.callback(result.hostName, result.port, result.serviceName, result.regType, result.domain);
-                console.log("queueItem callback "+queueItem.callback+" executed");
-            }, 0);
-        } else{
-            console.warn("Service not resolved:");
+        if (!timedOut) {
+            // Don't do anything if resolve timed out.
+            clearTimeout(resolveTimeOut);
+            if(result.serviceResolved){
+                setTimeout(function() {
+                    // Defer callback call to detach execution context.
+                    queueItem.callback(result.hostName, result.port, result.serviceName, result.regType, result.domain);
+                }, 0);
+            } else{
+                resolveFailed(result);
+            }
         }
 
-        console.groupEnd();
         resumeProcessingQueue();
     }
 
@@ -63,7 +67,6 @@ function DNSSD()
 }
 
 DNSSD.prototype.stopBrowsing = function(callback) {
-    console.log("Stop browsing.");
     resolveQueue.length = 0;
     var stopBrowsingFailed = function(result){
         console.error("Plugin cordova-dnssd, service stopBrowsing failed : ",result);
@@ -72,8 +75,6 @@ DNSSD.prototype.stopBrowsing = function(callback) {
 }
 
 DNSSD.prototype.browse=function(regType, domain, serviceFound, serviceLost) {
-    console.log("Browsing services of type "+regType+" on domain "+domain);
-
     function success(result)
     {
         if(result.serviceFound)
@@ -88,16 +89,14 @@ DNSSD.prototype.browse=function(regType, domain, serviceFound, serviceLost) {
     cordova.exec(success, browsingFailed, "fi.peekpoke.cordova.dnssd", "browse", [regType, domain]);
 }
 
-DNSSD.prototype.resolve=function(serviceName, regType, domain, serviceResolved) {
-    console.log("resolve "+serviceName);
-
+DNSSD.prototype.resolve=function(serviceName, regType, domain, serviceResolved, errorCallback) {
     resolveQueue.push({
         callback: serviceResolved,
+        errorCallback: errorCallback,
         serviceName: serviceName,
         regType: regType,
         domain: domain
     });
-    console.log("resolveQueue:",resolveQueue);
 
     processResolveQueue()
 }
